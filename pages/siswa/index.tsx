@@ -12,6 +12,9 @@ interface Student {
   class: {
     nama_kelas: string;
   };
+  selection: {
+    nama_rombel: string;
+  };
 }
 
 interface ClassOption {
@@ -53,7 +56,8 @@ const SiswaPage = () => {
           id: student.id,
           nama_siswa: student.nama_siswa,
           nis: student.nis,
-          class: student.class
+          class: student.class,
+          selection: student.selection
         }));
         setSiswaData(formattedData);
       }
@@ -254,6 +258,7 @@ const SiswaPage = () => {
                 <th className="p-2 border">Nama</th>
                 <th className="p-2 border">NIS</th>
                 <th className="p-2 border">Kelas</th>
+                <th className="p-2 border">Rombel</th>
                 <th className="p-2 border">Aksi</th>
               </tr>
             </thead>
@@ -271,6 +276,7 @@ const SiswaPage = () => {
                     <td className="p-2 border">{siswa.nama_siswa}</td>
                     <td className="p-2 border">{siswa.nis}</td>
                     <td className="p-2 border">{siswa.class?.nama_kelas || '-'}</td>
+                    <td className="p-2 border">{siswa.selection?.nama_rombel || '-'}</td>
                     <td className="p-2 border">
                       <div className="flex space-x-2">
                         <button
