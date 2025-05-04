@@ -1,1 +1,9 @@
-{}
+{
+  "/_app": "pages/_app.js",
+  "/_error": "pages/_error.js",
+  "/_document": "pages/_document.js",
+  "/siswa": "pages/siswa.js",
+  "/generate-qr": "pages/generate-qr.js",
+  "/riwayat": "pages/riwayat.js",
+  "/kelas": "pages/kelas.js"
+}
