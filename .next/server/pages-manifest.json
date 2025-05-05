@@ -2,8 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
+  "/laporan": "pages/laporan.js",
   "/siswa": "pages/siswa.js",
-  "/scan-qr": "pages/scan-qr.js",
-  "/kelas": "pages/kelas.js",
-  "/generate-qr": "pages/generate-qr.js"
+  "/scan-qr": "pages/scan-qr.js"
 }

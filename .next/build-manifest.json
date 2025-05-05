@@ -22,15 +22,10 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/kelas": [
+    "/laporan": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/kelas.js"
-    ],
-    "/scan-qr": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/scan-qr.js"
+      "static/chunks/pages/laporan.js"
     ],
     "/siswa": [
       "static/chunks/webpack.js",

@@ -15,6 +15,7 @@ const ScanQRPage = () => {
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [qrResult, setQrResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const lastScannedRef = useRef<{ data: string, absen: string } | null>(null);
 
   const token = Cookies.get('access_token');
   const headers = {
@@ -60,38 +61,49 @@ const ScanQRPage = () => {
       if (
         webcamRef.current &&
         webcamRef.current.video &&
-        webcamRef.current.video.readyState === 4 // Video ready
+        webcamRef.current.video.readyState === 4
       ) {
         const video = webcamRef.current.video as HTMLVideoElement;
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
+  
         if (ctx) {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const code = jsQR(imageData.data, canvas.width, canvas.height);
+  
           if (code) {
-            setQrResult(code.data);
-            // Swal.fire({
-            //   icon: 'success',
-            //   title: 'QR Code Terdeteksi!',
-            //   text: `Isi: ${code.data}`,
-            //   confirmButtonText: 'OK'
-            // });
-            if (absen == 'masuk') {
-              handleMasuk(code.data)
-            } else {
-              handlePulang(code.data)
+            const current = { data: code.data, absen };
+  
+            // Cek apakah kombinasi QR + absen sudah diproses
+            if (
+              !lastScannedRef.current ||
+              lastScannedRef.current.data !== current.data ||
+              lastScannedRef.current.absen !== current.absen
+            ) {
+              lastScannedRef.current = current;
+  
+              if (absen === 'masuk') {
+                handleMasuk(code.data);
+              } else {
+                handlePulang(code.data);
+              }
+  
+              // Reset agar bisa scan ulang dalam 5 detik
+              setTimeout(() => {
+                lastScannedRef.current = null;
+              }, 5000);
             }
-            clearInterval(interval); // Stop scanning after success
           }
         }
       }
-    }, 500); // Cek setiap 500ms
-
+    }, 1000);
+  
     return () => clearInterval(interval);
-  }, []);
+  }, [absen]);
+  
 
   const handleMasuk = async (code: any) => {
     try {

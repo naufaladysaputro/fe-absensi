@@ -9,6 +9,7 @@ import { BiQrScan } from 'react-icons/bi';
 interface Student {
   id: number;
   nama_siswa: string;
+  jenis_kelamin: string;
   nis: string;
   class: {
     nama_kelas: string;
@@ -35,6 +36,7 @@ const SiswaPage = () => {
   const [formData, setFormData] = useState({
     nama_siswa: '',
     nis: '',
+    jenis_kelamin: '',
     classes_id: ''
   });
 
@@ -73,6 +75,8 @@ const SiswaPage = () => {
     try {
       const response = await axios.get(`${API_URL}/api/classes`, { headers });
       if (response.data.status === 'success') {
+        console.log("kelas optionresponse.data.data);
+        
         setClassOptions(response.data.data);
       }
     } catch (error) {
@@ -111,6 +115,7 @@ const SiswaPage = () => {
     setFormData({
       nama_siswa: student.nama_siswa,
       nis: student.nis,
+      jenis_kelamin: student.jenis_kelamin,
       classes_id: '' // Atur sesuai kebutuhan jika ID kelas tersedia
     });
   };
@@ -148,6 +153,7 @@ const SiswaPage = () => {
     setFormData({
       nama_siswa: '',
       nis: '',
+      jenis_kelamin: '',
       classes_id: ''
     });
   };
@@ -221,6 +227,18 @@ const SiswaPage = () => {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label>Jenis Kelamin</label>
+                  
+                <select
+                className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.jenis_kelamin}
+                onChange={handleInputChange}
+              >
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
                 </div>
                 <div className="flex justify-end space-x-2">
                   <button
