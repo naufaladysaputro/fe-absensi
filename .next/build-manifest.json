@@ -22,20 +22,15 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/generate-qr": [
+    "/pengaturan": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/generate-qr.js"
+      "static/chunks/pages/pengaturan.js"
     ],
-    "/riwayat": [
+    "/scan-qr": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/riwayat.js"
-    ],
-    "/siswa": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/siswa.js"
+      "static/chunks/pages/scan-qr.js"
     ]
   },
   "ampFirstPages": []

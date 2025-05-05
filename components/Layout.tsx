@@ -1,7 +1,7 @@
 import React, { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { FiHome, FiUsers, FiBookOpen, FiCalendar, FiCamera, FiCode, FiClock, FiLogOut, FiUser, FiChevronDown, FiMenu, FiX } from 'react-icons/fi';
+import { FiHome, FiUsers, FiBookOpen, FiCalendar, FiCamera, FiCode, FiClock, FiLogOut, FiUser, FiChevronDown, FiMenu, FiX, FiSettings, FiPrinter } from 'react-icons/fi';
 import Cookies from 'js-cookie';
 
 interface LayoutProps {
@@ -15,18 +15,32 @@ const Layout = ({ children }: LayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  // Handle dark mode toggle
+  const handleToggleDarkMode = () => {
+    const currentMode = localStorage.getItem('darkMode');
+    const newMode = currentMode === 'true' ? 'false' : 'true';  // Toggle between 'true' and 'false'
+    localStorage.setItem('darkMode', newMode);
+
+    // Apply dark mode to document
+    if (newMode === 'true') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   useEffect(() => {
     const token = Cookies.get('access_token');
     if (!token) {
       handleLogout();
     }
-    
-    // Check and apply dark mode on initial load
-    const isDarkMode = localStorage.getItem('darkMode') === 'false';
+
+    // Set the initial theme on page load
+    const isDarkMode = localStorage.getItem('darkMode') === 'true'; // Dark mode flag should be 'true' to activate dark mode
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove('dark');  // Ensure light mode is active if dark mode is not enabled
     }
 
     // Initial time set
@@ -45,7 +59,7 @@ const Layout = ({ children }: LayoutProps) => {
     // Listen for dark mode changes
     const handleDarkModeChange = (e: StorageEvent) => {
       if (e.key === 'darkMode') {
-        const isDark = e.newValue === 'false';
+        const isDark = e.newValue === 'true';  // Listen for changes to darkMode setting in localStorage
         if (isDark) {
           document.documentElement.classList.add('dark');
         } else {
@@ -84,11 +98,11 @@ const Layout = ({ children }: LayoutProps) => {
     { icon: FiCalendar, label: 'Data Kelas', path: '/kelas' },
     { icon: FiCode, label: 'Ambil QR Code', path: '/generate-qr' },
     { icon: FiCamera, label: 'Scan QR Code', path: '/scan-qr' },
-    { icon: FiClock, label: 'Riwayat Absensi', path: '/riwayat' },
+    { icon: FiPrinter, label: 'Generate Laporan', path: '/laporan' },
+    { icon: FiSettings, label: 'Pengaturan', path: '/pengaturan' },
   ];
 
   const handleLogout = () => {
-    // TODO: Implement logout logic
     Cookies.remove('access_token');
     router.push('/login');
   };
@@ -104,12 +118,10 @@ const Layout = ({ children }: LayoutProps) => {
       )}
 
       {/* Sidebar */}
-      <div className={`
-        fixed lg:static inset-y-0 left-0 transform 
+      <div className={`fixed lg:static inset-y-0 left-0 transform 
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 transition-transform duration-200 ease-in-out
-        w-64 bg-white dark:bg-gray-800 shadow-lg z-30
-      `}>
+        w-64 bg-white dark:bg-gray-800 shadow-lg z-30`}>
         <div className="p-4 bg-blue-600 dark:bg-blue-700 flex justify-between items-center">
           <h1 className="text-white text-xl font-bold">Sistem Absensi</h1>
           <button
@@ -167,16 +179,6 @@ const Layout = ({ children }: LayoutProps) => {
 
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10">
-                    <Link
-                      href="/profil"
-                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700"
-                    >
-                      <div className="flex items-center">
-                        <FiUser className="mr-2" />
-                        Profil Saya
-                      </div>
-                    </Link>
-                    <hr className="my-1 border-gray-200 dark:border-gray-700" />
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
@@ -194,8 +196,18 @@ const Layout = ({ children }: LayoutProps) => {
           {children}
         </main>
       </div>
+
+      {/* Dark Mode Toggle Button */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <button
+          onClick={handleToggleDarkMode}
+          className="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-500 focus:outline-none"
+        >
+          Toggle Dark Mode
+        </button>
+      </div>
     </div>
   );
 };
 
-export default Layout; 
+export default Layout;
