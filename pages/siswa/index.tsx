@@ -4,6 +4,7 @@ import Cookies from 'js-cookie';
 import Layout from '../../components/Layout';
 import { FiEdit2, FiTrash2, FiPlus, FiX } from 'react-icons/fi';
 import { API_URL } from '../config';
+import { BiQrScan } from 'react-icons/bi';
 
 interface Student {
   id: number;
@@ -15,6 +16,7 @@ interface Student {
   selection: {
     nama_rombel: string;
   };
+  qr_path: string;
 }
 
 interface ClassOption {
@@ -57,7 +59,8 @@ const SiswaPage = () => {
           nama_siswa: student.nama_siswa,
           nis: student.nis,
           class: student.class,
-          selection: student.selection
+          selection: student.selection,
+          qr_path: student.qr_path
         }));
         setSiswaData(formattedData);
       }
@@ -117,6 +120,22 @@ const SiswaPage = () => {
     try {
       await axios.delete(`${API_URL}/api/students/${id}`, { headers });
       fetchSiswa();
+    } catch (error) {
+      console.error('Gagal menghapus siswa:', error);
+    }
+  };
+
+  
+  const handleDownloadQR = async (qr_path: string) => {
+    try {
+      
+    const url = `${API_URL}${qr_path}`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = qr_path.split('/').pop() || 'qr_code.png'; // nama file dari path
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     } catch (error) {
       console.error('Gagal menghapus siswa:', error);
     }
@@ -291,6 +310,14 @@ const SiswaPage = () => {
                         >
                           <FiTrash2 size={14} />
                         </button>
+                        { siswa.qr_path && (
+                          <button
+                            onClick={() => handleDownloadQR(siswa.qr_path)}
+                            className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                          >
+                            <BiQrScan size={14} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

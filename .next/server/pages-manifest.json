@@ -2,7 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/generate-qr": "pages/generate-qr.js",
+  "/siswa": "pages/siswa.js",
   "/scan-qr": "pages/scan-qr.js",
-  "/": "pages/index.js"
+  "/kelas": "pages/kelas.js",
+  "/generate-qr": "pages/generate-qr.js"
 }
