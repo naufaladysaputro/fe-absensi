@@ -5,13 +5,16 @@ import jsQR from 'jsqr';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import { API_URL } from '../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
+import axios from 'axios';
 
 const ScanQRPage = () => {
   const [isCameraActive, setIsCameraActive] = useState(true);
   const webcamRef = useRef<Webcam>(null);
   const [selectedCamera, setSelectedCamera] = useState('');
+  const [absen, setAbsen] = useState('masuk');
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [qrResult, setQrResult] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const token = Cookies.get('access_token');
   const headers = {
@@ -70,12 +73,17 @@ const ScanQRPage = () => {
           const code = jsQR(imageData.data, canvas.width, canvas.height);
           if (code) {
             setQrResult(code.data);
-            Swal.fire({
-              icon: 'success',
-              title: 'QR Code Terdeteksi!',
-              text: `Isi: ${code.data}`,
-              confirmButtonText: 'OK'
-            });
+            // Swal.fire({
+            //   icon: 'success',
+            //   title: 'QR Code Terdeteksi!',
+            //   text: `Isi: ${code.data}`,
+            //   confirmButtonText: 'OK'
+            // });
+            if (absen == 'masuk') {
+              handleMasuk(code.data)
+            } else {
+              handlePulang(code.data)
+            }
             clearInterval(interval); // Stop scanning after success
           }
         }
@@ -85,73 +93,45 @@ const ScanQRPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleMasuk = async () => {
-      try {
-        setLoading(true);
-        // Meminta laporan absensi dari API
-        const response = await axios.post(`${API_URL}/api/qrcodes/generate/class/${kelas}`, {}, { headers });
-  
-        if (response.data.status) {
-          alert(response.data.message);
-  
-        } else {
-          alert(response.data.message);
-          console.error('Laporan gagal dihasilkan');
-        }
-  
-      } catch (error) {
-        console.error('Error generating report:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    const handlePulang = async () => {
-      try {
-        setLoading(true);
-        // Meminta laporan absensi dari API
-        const response = await axios.get(
-          `${API_URL}/api/qrcodes/class/${kelas}`,
-          { headers }
-        );
-  
-        if (response.data.status === "success") {
-          const zip = new JSZip();
-          const folder = zip.folder(`QR_Kelas_${kelas}`);
-  
-          const qrList = response.data.data;
-          console.log('====================================');
-          console.log(qrList);
-          console.log('====================================');
-          for (const item of qrList) {
-            const fileUrl = `${API_URL}${item.qr_path}`;
-            const fileName = item.qr_path.split('/').pop() || 'qr.png';
-  
-            try {
-              const fileResponse = await axios.get(fileUrl, {
-                responseType: 'blob',
-                headers,
-              });
-  
-              folder?.file(fileName, fileResponse.data);
-            } catch (err) {
-              console.warn(`❌ File gagal diunduh dan dilewati: ${fileUrl}`);
-              continue; // skip file yang error
-            }
-          }
-  
-          const zipBlob = await zip.generateAsync({ type: 'blob' });
-          saveAs(zipBlob, `QR_Kelas_${kelas}.zip`);
-        } else {
-          console.error('Laporan gagal dihasilkan');
-        }
-  
-      } catch (error) {
-        console.error('Error generating report:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleMasuk = async (code: any) => {
+    try {
+      setLoading(true);
+      // Meminta laporan absensi dari API
+      const response = await axios.post(`${API_URL}/api/attendance/scan/masuk`, { unique_code: code }, { headers });
+      Swal.fire({
+        icon: 'success',
+        title: 'Absen Masuk!',
+        text: response.data.data,
+        confirmButtonText: 'OK'
+      });
+    } catch (error) {
+      console.error('Error generating report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePulang = async (code: any) => {
+    try {
+      setLoading(true);
+      // Meminta laporan absensi dari API
+      const response = await axios.post(
+        `${API_URL}/api/attendance/scan/pulang`,
+        { unique_code: code },
+        { headers }
+      );
+      Swal.fire({
+        icon: 'success',
+        title: 'Absen Pulang Berhasil!',
+        text: response.data.data,
+        confirmButtonText: 'OK'
+      });
+    } catch (error) {
+      console.error('Error generating report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <Layout>
       <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -177,44 +157,60 @@ const ScanQRPage = () => {
               ))}
             </select>
           </div>
-
-          {/* Tampilan Kamera */}
-          <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
-            {isCameraActive && (
-              <Webcam
-                audio={false}
-                ref={webcamRef}
-                screenshotFormat="image/jpeg"
-                videoConstraints={videoConstraints}
-                className="w-full"
-                onUserMediaError={handleUserMediaError}
-              />
-            )}
-          </div>
-
-          {!isCameraActive && (
-            <div className="text-center py-8">
-              <p className="text-red-500">
-                Kamera tidak dapat diakses. Mohon periksa izin kamera di browser.
-              </p>
-              <button
-                onClick={() => setIsCameraActive(true)}
-                className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+          <div className="max-w-2xl mx-auto">
+            {/* Pilihan Kamera */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Absen:
+              </label>
+              <select
+                className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={absen}
+                onChange={(e) => setAbsen(e.target.value)}
               >
-                Coba Lagi
-              </button>
+                <option value="masuk">Masuk</option>
+                <option value="pulang">Pulang</option>
+              </select>
             </div>
-          )}
 
-          {/* Hasil Scan */}
-          {qrResult && (
-            <div className="mt-4 p-4 bg-green-100 border border-green-300 text-green-800 rounded">
-              <p><strong>QR Code:</strong> {qrResult}</p>
+            {/* Tampilan Kamera */}
+            <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
+              {isCameraActive && (
+                <Webcam
+                  audio={false}
+                  ref={webcamRef}
+                  screenshotFormat="image/jpeg"
+                  videoConstraints={videoConstraints}
+                  className="w-full"
+                  onUserMediaError={handleUserMediaError}
+                />
+              )}
             </div>
-          )}
 
-          <div className="mt-4 text-center text-sm text-gray-600">
-            <p>Arahkan kamera ke QR Code untuk melakukan scanning</p>
+            {!isCameraActive && (
+              <div className="text-center py-8">
+                <p className="text-red-500">
+                  Kamera tidak dapat diakses. Mohon periksa izin kamera di browser.
+                </p>
+                <button
+                  onClick={() => setIsCameraActive(true)}
+                  className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+                >
+                  Coba Lagi
+                </button>
+              </div>
+            )}
+
+            {/* Hasil Scan */}
+            {/* {qrResult && (
+              <div className="mt-4 p-4 bg-green-100 border border-green-300 text-green-800 rounded">
+                <p><strong>QR Code:</strong> {qrResult}</p>
+              </div>
+            )} */}
+
+            <div className="mt-4 text-center text-sm text-gray-600">
+              <p>Arahkan kamera ke QR Code untuk melakukan scanning</p>
+            </div>
           </div>
         </div>
       </div>
