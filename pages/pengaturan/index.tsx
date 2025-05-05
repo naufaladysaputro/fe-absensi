@@ -1,16 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import axios from 'axios';
+import Cookies from 'js-cookie';
+import { API_URL } from '../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
 
 const PengaturanPage = () => {
   // State untuk form input
-  const [schoolName, setSchoolName] = useState('MA Darul Ulum Muhammadiyah Galur');
-  const [schoolYear, setSchoolYear] = useState('2025');
-  const [apiKey, setApiKey] = useState('8YXHBsPaS9G1JevvpSDEWn2xQ');
-  const [copyright, setCopyright] = useState('© 2025 All rights reserved');
-  const [logo, setLogo] = useState(null);
-  const [logoPreview, setLogoPreview] = useState('https://absen.berdikari.my.id/uploads/logo/logo_68180da7364b21-92054717.jpg');
+  const [schoolName, setSchoolName] = useState('');
+  const [schoolYear, setSchoolYear] = useState('');
+  const [logo, setLogo] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const token = Cookies.get('access_token');
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/settings`, { headers });
+        const settings = response.data.data;
+        setSchoolName(settings.nama_sekolah);
+        setSchoolYear(settings.tahun_ajaran);
+        setLogoPreview(`${API_URL}${settings.logo_path}`); // Misal logo_url di response
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
 
   // Fungsi untuk menangani submit form
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,18 +43,10 @@ const PengaturanPage = () => {
     const formData = new FormData();
     formData.append('school_name', schoolName);
     formData.append('school_year', schoolYear);
-    formData.append('api_key', apiKey);
-    formData.append('copyright', copyright);
-    if (logo) {
-      formData.append('logo', logo);
-    }
 
     try {
-      const response = await axios.post('https://absen.berdikari.my.id/admin/general-settings/update', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.put(`${API_URL}/api/settings/1`, formData, { headers });
+
 
       if (response.data.success) {
         alert('Pengaturan berhasil diperbarui');
@@ -43,6 +58,40 @@ const PengaturanPage = () => {
       alert('Terjadi kesalahan saat memperbarui pengaturan');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmitLogo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (logo) {
+      const formDataLogo = new FormData();
+      formDataLogo.append('logo', logo);
+
+      // for (let [key, value] of formDataLogo.entries()) {
+      //   console.log(`${key}:`, value);
+      // }
+
+      try {
+        const response = await axios.put(`${API_URL}/api/settings/logo/1`, formDataLogo, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // Jangan tambahkan Content-Type manual
+          } 
+        });
+
+        if (response.data.success) {
+          alert('Pengaturan berhasil diperbarui');
+        } else {
+          alert('Gagal memperbarui pengaturan');
+        }
+      } catch (error) {
+        console.error('Error updating settings:', error);
+        alert('Terjadi kesalahan saat memperbarui pengaturan');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -91,30 +140,6 @@ const PengaturanPage = () => {
               />
             </div>
 
-            <div className="mb-4">
-              <label htmlFor="api_key" className="block text-sm font-medium text-gray-700 mb-2">Api Key Fonnte</label>
-              <input
-                type="text"
-                id="api_key"
-                className="w-full border rounded-md pl-3 pr-10 py-2"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label htmlFor="copyright" className="block text-sm font-medium text-gray-700 mb-2">Copyright</label>
-              <input
-                type="text"
-                id="copyright"
-                className="w-full border rounded-md pl-3 pr-10 py-2"
-                value={copyright}
-                onChange={(e) => setCopyright(e.target.value)}
-                required
-              />
-            </div>
-
             <button
               type="submit"
               className={`w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -128,26 +153,28 @@ const PengaturanPage = () => {
         {/* Right Side - Logo Upload */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <h2 className="text-xl font-semibold text-gray-800 mb-6">Logo Sekolah</h2>
-          <div className="mb-4">
-            <div style={{ marginBottom: '10px', border: '1px solid #eee', padding: '10px' }}>
-              <img src={logoPreview} alt="Logo Preview" className="max-w-xs mx-auto" />
-            </div>
-            <input
-              type="file"
-              accept="image/png, image/jpg, image/jpeg, image/gif, image/svg+xml"
-              onChange={handleLogoChange}
-              className="w-full"
-            />
-            <span className="text-sm text-secondary">(.png, .jpg, .jpeg, .gif, .svg)</span>
+          <form onSubmit={handleSubmitLogo}>
+            <div className="mb-4">
+              <div style={{ marginBottom: '10px', border: '1px solid #eee', padding: '10px' }}>
+                <img src={logoPreview} alt="Logo Preview" className="max-w-xs mx-auto" />
+              </div>
+              <input
+                type="file"
+                accept="image/png, image/jpg, image/jpeg, image/gif, image/svg+xml"
+                onChange={handleLogoChange}
+                className="w-full"
+              />
+              <span className="text-sm text-secondary">(.png, .jpg, .jpeg, .gif, .svg)</span>
 
-            <button
-              type="submit"
-              className={`w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={loading}
-            >
-              {loading ? 'Memproses...' : 'Simpan Gambar'}
-            </button>
-          </div>
+              <button
+                type="submit"
+                className={`w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={loading}
+              >
+                {loading ? 'Memproses...' : 'Simpan Gambar'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </Layout>

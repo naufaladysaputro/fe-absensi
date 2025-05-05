@@ -1,189 +1,188 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { API_URL } from '../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
+import Cookies from 'js-cookie';
+import { FiPrinter } from 'react-icons/fi';
 import Layout from '../../components/Layout';
-import { QRCodeSVG } from 'qrcode.react';
-import { FiSearch, FiPrinter } from 'react-icons/fi';
+import { BiQrScan } from 'react-icons/bi';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
-interface Student {
-  id: string;
-  nama: string;
-  nisn: string;
-  kelas: string;
-  jabatan: string;
-  shift: string;
-  penempatan: string;
-}
+const GeneratePage = () => {
+  const [kelas, setKelas] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [kelasOptions, setKelasOptions] = useState<any[]>([]); // State untuk menyimpan data kelas
+  const [siswaCount, setSiswaCount] = useState<any>({}); // Menyimpan jumlah siswa untuk masing-masing kelas
 
-const GenerateQRPage = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const printRef = useRef<HTMLDivElement>(null);
-
-  // Dummy data for demonstration
-  const dummyStudent: Student = {
-    id: 'S2008001',
-    nama: 'Karyawan 1',
-    nisn: '1234567890',
-    kelas: 'VII A',
-    jabatan: 'STAFF',
-    shift: 'SHIFT 1',
-    penempatan: 'KELAS 1'
+  const token = Cookies.get('access_token');
+  const headers = {
+    // 'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real application, this would make an API call to search for the student
-    // For now, we'll just set the dummy data
-    setSelectedStudent(dummyStudent);
-  };
-
-  const handlePrint = () => {
-    const printContent = printRef.current;
-    if (printContent) {
-      const originalContents = document.body.innerHTML;
-      const printContents = printContent.innerHTML;
-      
-      // Create a new window with only the QR code content
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.open();
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>Print QR Code</title>
-              <style>
-                body {
-                  font-family: Arial, sans-serif;
-                  padding: 20px;
-                }
-                .print-container {
-                  max-width: 400px;
-                  margin: 0 auto;
-                  text-align: center;
-                }
-                .qr-code {
-                  background: white;
-                  padding: 20px;
-                  margin-bottom: 20px;
-                  display: inline-block;
-                }
-                .info {
-                  text-align: left;
-                  margin-top: 20px;
-                }
-                .info p {
-                  margin: 5px 0;
-                }
-                @media print {
-                  body {
-                    padding: 0;
-                  }
-                  .print-container {
-                    max-width: none;
-                  }
-                }
-              </style>
-            </head>
-            <body>
-              <div class="print-container">
-                ${printContents}
-              </div>
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
-        
-        // Wait for images to load before printing
-        setTimeout(() => {
-          printWindow.print();
-          printWindow.close();
-        }, 250);
+  // Mengambil data kelas dari API saat komponen pertama kali dimuat
+  useEffect(() => {
+    const fetchKelas = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/classes`, { headers });
+        if (response.data.status === 'success') {
+          setKelasOptions(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching kelas data:', error);
       }
+    };
+    fetchKelas();
+  }, []); // Kosong array dependencies untuk fetch data sekali saja
+
+  const handleGenerateQR = async () => {
+    try {
+      setLoading(true);
+      // Meminta laporan absensi dari API
+      const response = await axios.post(`${API_URL}/api/qrcodes/generate/class/${kelas}`, {}, { headers });
+
+      if (response.data.status) {
+        alert(response.data.message);
+
+      } else {
+        alert(response.data.message);
+        console.error('Laporan gagal dihasilkan');
+      }
+
+    } catch (error) {
+      console.error('Error generating report:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleDownload = async () => {
+    try {
+      setLoading(true);
+      // Meminta laporan absensi dari API
+      const response = await axios.get(
+        `${API_URL}/api/qrcodes/class/${kelas}`,
+        { headers }
+      );
+
+      if (response.data.status === "success") {
+        const zip = new JSZip();
+        const folder = zip.folder(`QR_Kelas_${kelas}`);
+
+        const qrList = response.data.data;
+        console.log('====================================');
+        console.log(qrList);
+        console.log('====================================');
+        for (const item of qrList) {
+          const fileUrl = `${API_URL}${item.qr_path}`;
+          const fileName = item.qr_path.split('/').pop() || 'qr.png';
+
+          try {
+            const fileResponse = await axios.get(fileUrl, {
+              responseType: 'blob',
+              headers,
+            });
+
+            folder?.file(fileName, fileResponse.data);
+          } catch (err) {
+            console.warn(`❌ File gagal diunduh dan dilewati: ${fileUrl}`);
+            continue; // skip file yang error
+          }
+        }
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        saveAs(zipBlob, `QR_Kelas_${kelas}.zip`);
+      } else {
+        console.error('Laporan gagal dihasilkan');
+      }
+
+    } catch (error) {
+      console.error('Error generating report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Menghitung jumlah siswa berdasarkan kelas
+  const calculateSiswaCount = () => {
+    const count: any = {};
+    kelasOptions.forEach((kelasData) => {
+      count[kelasData.id] = Math.floor(Math.random() * 10); // Anggap random siswa count, ganti sesuai data asli
+    });
+    setSiswaCount(count);
+  };
+
+  // Panggil calculateSiswaCount jika kelasOptions berubah
+  useEffect(() => {
+    if (kelasOptions.length > 0) {
+      calculateSiswaCount();
+    }
+  }, [kelasOptions]);
+
   return (
     <Layout>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Side - Search Form */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">GENERATE QRCODE</h2>
-          <form onSubmit={handleSearch}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                INPUT NAMA DI SINI
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full border rounded-md pl-3 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Masukkan nama..."
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500"
-                >
-                  <FiSearch size={20} />
-                </button>
+      <div className="px-6 py-4">
+        <div className="card rounded-lg shadow-lg">
+          <div className="card-header bg-blue-500 text-white p-4 rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-xl font-bold">Generate QR</h4>
+                <p>Generate QR berdasarkan kode unik data siswa</p>
               </div>
             </div>
-            <button
-              type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-            >
-              Submit
-            </button>
-          </form>
-        </div>
+          </div>
 
-        {/* Right Side - QR Code Display */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">INFORMASI QRCODE AKAN MUNCUL DISINI</h2>
-          
-          {selectedStudent ? (
-            <>
-              <div ref={printRef} className="bg-blue-500 text-white rounded-lg p-6">
-                <div className="flex justify-center mb-4">
-                  <div className="bg-white p-4 rounded-lg qr-code">
-                    <QRCodeSVG
-                      value={selectedStudent.id}
-                      size={200}
-                      level="H"
-                      includeMargin={true}
-                      className="w-full"
-                    />
+          <div className="card-body p-6 bg-white">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              {/* Laporan Absen Siswa */}
+              <div className="card">
+                <form onSubmit={(e) => e.preventDefault()} className="flex flex-col p-6">
+                  <h4 className="text-primary text-xl font-bold mb-4">Gernerate per kelas</h4>
+                  <select
+                    name="kelas"
+                    value={kelas}
+                    onChange={(e) => setKelas(e.target.value)}
+                    className="border rounded-md p-2 mt-3"
+                  >
+                    <option value="">--Pilih kelas--</option>
+                    {kelasOptions.map((kelasData) => (
+                      <option key={kelasData.id} value={kelasData.id}>
+                        {`Kelas ${kelasData.nama_kelas} ${kelasData.selection.nama_rombel} - ${siswaCount[kelasData.id] || 0} siswa`}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Tombol untuk menghasilkan laporan dalam format PDF dan DOC */}
+                  <div className="mt-6 flex flex-col space-y-4">
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateQR()}
+                      className="flex items-center bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 disabled:opacity-50"
+                      disabled={loading}
+                    >
+                      <BiQrScan size={24} className="mr-2" />
+                      <span className="text-lg font-semibold">Generate Per Kelas</span>
+                    </button>
                   </div>
-                </div>
-                <div className="space-y-2 info">
-                  <p className="text-lg font-bold">{selectedStudent.id}</p>
-                  <p>{selectedStudent.nama}</p>
-                  <div className="space-y-1 text-sm">
-                    <p>NAMA JABATAN : {selectedStudent.jabatan}</p>
-                    <p>SHIFT : {selectedStudent.shift}</p>
-                    <p>PENEMPATAN : {selectedStudent.penempatan}</p>
+                  <div className="mt-6 flex flex-col space-y-4">
+                    <button
+                      type="button"
+                      onClick={() => handleDownload()}
+                      className="flex items-center bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 disabled:opacity-50"
+                      disabled={loading}
+                    >
+                      <FiPrinter size={24} className="mr-2" />
+                      <span className="text-lg font-semibold">Download per kelas</span>
+                    </button>
                   </div>
-                </div>
+                </form>
               </div>
-              <div className="mt-4 flex justify-center">
-                <button
-                  onClick={handlePrint}
-                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-md flex items-center"
-                >
-                  <FiPrinter className="mr-2" />
-                  Cetak QR Code
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="text-center text-gray-500">
-              <p>QR Code akan muncul setelah melakukan pencarian</p>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </Layout>
   );
 };
 
-export default GenerateQRPage; 
+export default GeneratePage;

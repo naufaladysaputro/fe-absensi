@@ -10,7 +10,7 @@ import Swal from "sweetalert2";
 const LoginPage = () => {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -39,7 +39,13 @@ const LoginPage = () => {
         });
         throw new Error(response.data.message);
       }
-    } catch (err) {
+    } catch (err:any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Gagal',
+        text: err.response.data.message,
+        confirmButtonColor: '#d33',
+      });
       console.error('Error fetching login data:', err);
       setError(err instanceof Error ? err.message : 'An error occurred while fetching data');
     } finally {
@@ -143,34 +149,14 @@ const LoginPage = () => {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                disabled={isLoading}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
               >
-                Masuk
+                {isLoading ? 'Memproses...' : 'Masuk'}
               </button>
             </div>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  Belum punya akun?
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <Link
-                href="/register"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Daftar sekarang
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>

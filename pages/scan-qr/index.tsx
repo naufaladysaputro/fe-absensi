@@ -3,6 +3,8 @@ import Layout from '../../components/Layout';
 import Webcam from 'react-webcam';
 import jsQR from 'jsqr';
 import Swal from 'sweetalert2';
+import Cookies from 'js-cookie';
+import { API_URL } from '../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
 
 const ScanQRPage = () => {
   const [isCameraActive, setIsCameraActive] = useState(true);
@@ -11,6 +13,11 @@ const ScanQRPage = () => {
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [qrResult, setQrResult] = useState<string | null>(null);
 
+  const token = Cookies.get('access_token');
+  const headers = {
+    // 'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
   // Mendapatkan daftar kamera yang tersedia
   const getCameras = useCallback(async () => {
     try {
@@ -78,6 +85,73 @@ const ScanQRPage = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const handleMasuk = async () => {
+      try {
+        setLoading(true);
+        // Meminta laporan absensi dari API
+        const response = await axios.post(`${API_URL}/api/qrcodes/generate/class/${kelas}`, {}, { headers });
+  
+        if (response.data.status) {
+          alert(response.data.message);
+  
+        } else {
+          alert(response.data.message);
+          console.error('Laporan gagal dihasilkan');
+        }
+  
+      } catch (error) {
+        console.error('Error generating report:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    const handlePulang = async () => {
+      try {
+        setLoading(true);
+        // Meminta laporan absensi dari API
+        const response = await axios.get(
+          `${API_URL}/api/qrcodes/class/${kelas}`,
+          { headers }
+        );
+  
+        if (response.data.status === "success") {
+          const zip = new JSZip();
+          const folder = zip.folder(`QR_Kelas_${kelas}`);
+  
+          const qrList = response.data.data;
+          console.log('====================================');
+          console.log(qrList);
+          console.log('====================================');
+          for (const item of qrList) {
+            const fileUrl = `${API_URL}${item.qr_path}`;
+            const fileName = item.qr_path.split('/').pop() || 'qr.png';
+  
+            try {
+              const fileResponse = await axios.get(fileUrl, {
+                responseType: 'blob',
+                headers,
+              });
+  
+              folder?.file(fileName, fileResponse.data);
+            } catch (err) {
+              console.warn(`❌ File gagal diunduh dan dilewati: ${fileUrl}`);
+              continue; // skip file yang error
+            }
+          }
+  
+          const zipBlob = await zip.generateAsync({ type: 'blob' });
+          saveAs(zipBlob, `QR_Kelas_${kelas}.zip`);
+        } else {
+          console.error('Laporan gagal dihasilkan');
+        }
+  
+      } catch (error) {
+        console.error('Error generating report:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
   return (
     <Layout>
       <div className="bg-white p-6 rounded-lg shadow-sm">
