@@ -104,7 +104,13 @@ const ScanQRPage = () => {
         text: response.data.data,
         confirmButtonText: 'OK'
       });
-    } catch (error) {
+    } catch (error:any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Absen Masuk gagal!',
+        text: error.response.data.message,
+        confirmButtonText: 'OK'
+      });
       console.error('Error generating report:', error);
     } finally {
       setLoading(false);
@@ -126,7 +132,13 @@ const ScanQRPage = () => {
         text: response.data.data,
         confirmButtonText: 'OK'
       });
-    } catch (error) {
+    } catch (error:any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Absen Pulang gagal!',
+        text: error.response.data.message,
+        confirmButtonText: 'OK'
+      });
       console.error('Error generating report:', error);
     } finally {
       setLoading(false);
