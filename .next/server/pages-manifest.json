@@ -3,6 +3,7 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/laporan": "pages/laporan.js",
+  "/login": "pages/login.js",
   "/siswa": "pages/siswa.js",
-  "/scan-qr": "pages/scan-qr.js"
+  "/generate-qr": "pages/generate-qr.js"
 }

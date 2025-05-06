@@ -75,14 +75,16 @@ const SiswaPage = () => {
     try {
       const response = await axios.get(`${API_URL}/api/classes`, { headers });
       if (response.data.status === 'success') {
-        console.log("kelas optionresponse.data.data);
-        
+        console.log("kelas option", response.data.data);
+
         setClassOptions(response.data.data);
       }
     } catch (error) {
       console.error('Gagal mengambil data kelas:', error);
     }
   };
+
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -130,17 +132,17 @@ const SiswaPage = () => {
     }
   };
 
-  
+
   const handleDownloadQR = async (qr_path: string) => {
     try {
-      
-    const url = `${API_URL}${qr_path}`;
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = qr_path.split('/').pop() || 'qr_code.png'; // nama file dari path
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+      const url = `${API_URL}${qr_path}`;
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = qr_path.split('/').pop() || 'qr_code.png'; // nama file dari path
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Gagal menghapus siswa:', error);
     }
@@ -223,22 +225,27 @@ const SiswaPage = () => {
                     <option value="">Pilih Kelas</option>
                     {classOptions.map((kelas) => (
                       <option key={kelas.id} value={kelas.id}>
-                        {kelas.nama_kelas}
+                        {kelas.nama_kelas} - {kelas.selection.nama_rombel}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
                   <label>Jenis Kelamin</label>
-                  
-                <select
-                className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={formData.jenis_kelamin}
-                onChange={handleInputChange}
-              >
-                <option value="Laki-laki">Laki-laki</option>
-                <option value="Perempuan">Perempuan</option>
-              </select>
+
+                  <select
+                  name="jenis_kelamin"
+                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={formData.jenis_kelamin}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="" disabled>
+                      Pilih Jenis Kelamin
+                    </option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                  </select>
                 </div>
                 <div className="flex justify-end space-x-2">
                   <button
@@ -328,7 +335,7 @@ const SiswaPage = () => {
                         >
                           <FiTrash2 size={14} />
                         </button>
-                        { siswa.qr_path && (
+                        {siswa.qr_path && (
                           <button
                             onClick={() => handleDownloadQR(siswa.qr_path)}
                             className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
