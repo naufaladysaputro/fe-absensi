@@ -3,6 +3,10 @@ import {
   AcademicCapIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { API_URL } from '../pages/config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
+import Cookies from 'js-cookie';
 
 type StatCardProps = {
   title: string;
@@ -57,6 +61,25 @@ export type DashboardStats = {
 };
 
 export default function StatsCards({ stats }: { stats: DashboardStats }) {
+  const token = Cookies.get('access_token');
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+  const [schoolName, setSchoolName] = useState('');
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/settings`, { headers });
+        const settings = response.data.data;
+        setSchoolName(settings.nama_sekolah);
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+
+    fetchSettings();
+  }, []);
   const cards = [
     {
       title: 'Jumlah siswa',
@@ -68,7 +91,7 @@ export default function StatsCards({ stats }: { stats: DashboardStats }) {
     {
       title: 'Jumlah kelas',
       value: stats.kelas.jumlah,
-      subtitle: 'SMPN 3 KALIATI',
+      subtitle: schoolName,
       bgColor: 'bg-cyan-500',
       icon: AcademicCapIcon,
     },

@@ -147,7 +147,7 @@ const GeneratePage = () => {
                     <option value="">--Pilih kelas--</option>
                     {kelasOptions.map((kelasData) => (
                       <option key={kelasData.id} value={kelasData.id}>
-                        {`Kelas ${kelasData.nama_kelas} ${kelasData.selection.nama_rombel} - ${siswaCount[kelasData.id] || 0} siswa`}
+                        {`Kelas ${kelasData.nama_kelas} ${kelasData.selection.nama_rombel}`}
                       </option>
                     ))}
                   </select>

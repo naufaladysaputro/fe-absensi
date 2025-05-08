@@ -412,7 +412,7 @@ const ClassPage = () => {
                     id="name"
                     name="name"
                     required
-                    value={formData.name}
+                    value={formDataSelection.nama_rombel}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Enter selection name"
@@ -471,7 +471,7 @@ const ClassPage = () => {
                         <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b">{index + 1}</td>
                         <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b">{classItem.nama_kelas}</td>
                         <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b">
-                          { classItem.selection.nama_rombel || 'No Selection'
+                          {classItem.selection.nama_rombel || 'No Selection'
                           }
                         </td>
                         <td className="px-4 py-2 text-xs sm:text-sm border-b">

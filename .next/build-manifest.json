@@ -22,20 +22,15 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/generate-qr": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/generate-qr.js"
-    ],
     "/laporan": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/laporan.js"
     ],
-    "/login": [
+    "/siswa": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/login.js"
+      "static/chunks/pages/siswa.js"
     ]
   },
   "ampFirstPages": []

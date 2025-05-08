@@ -157,7 +157,7 @@ const StaffPage = () => {
         confirmButtonColor: '#3085d6',
       });
       fetchStaff();
-    } catch (error:any) {
+    } catch (error: any) {
 
       const errorMessage = error?.response?.data?.message || 'Terjadi kesalahan saat menghapus data.';
 
@@ -362,9 +362,9 @@ const StaffPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {staffData.map((staff) => (
+                {staffData.map((staff, index) => (
                   <tr key={staff.id} className="hover:bg-gray-50">
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-800 border-b whitespace-nowrap">{staff.id}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-800 border-b whitespace-nowrap">{index + 1}</td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-800 border-b whitespace-nowrap">{staff.username}</td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-800 border-b whitespace-nowrap">{staff.email}</td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-800 border-b whitespace-nowrap">{staff.role}</td>
