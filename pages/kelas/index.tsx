@@ -1,3 +1,4 @@
+// src/pages/ClassPage.tsx
 import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import { FiEdit2, FiTrash2, FiPlus, FiX } from 'react-icons/fi';
@@ -17,549 +18,242 @@ interface Selection {
   nama_rombel: string;
 }
 
-interface FormData {
-  nama_kelas: string;
-  selections_id: number;
-}
-
-interface FormDataSelection {
-  nama_rombel: string;
-}
-
 const ClassPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [entriesPerPage, setEntriesPerPage] = useState('10');
+  const [classData, setClassData] = useState<Class[]>([]);
+  const [selectionData, setSelectionData] = useState<Selection[]>([]);
+  const [formData, setFormData] = useState({ nama_kelas: '', selections_id: 0 });
+  const [formSelection, setFormSelection] = useState({ nama_rombel: '' });
+
   const [isClassModalOpen, setIsClassModalOpen] = useState(false);
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [selectedSelection, setSelectedSelection] = useState<Selection | null>(null);
-  const [classData, setClassData] = useState<Class[]>([]);
-  const [selectionData, setSelectionData] = useState<Selection[]>([]);
-  const [formData, setFormData] = useState<FormData>({
-    nama_kelas: '',
-    selections_id: 0,
-  });
-
-  const [formDataSelection, setFormDataSelection] = useState<FormDataSelection>({
-    nama_rombel: '',
-  });
-
-  const [loading, setLoading] = useState(true);
 
   const token = Cookies.get('access_token');
+  const headers = { Authorization: `Bearer ${token}` };
 
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  };
-
-  // Fetch classes and selections
-  const fetchClasses = async () => {
+  const fetchData = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/classes`, { headers });
-      setClassData(response.data.data);
-    } catch (error) {
-      console.error('Failed to fetch classes:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSelections = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/api/selections`, { headers });
-      setSelectionData(response.data.data);
-    } catch (error) {
-      console.error('Failed to fetch selections:', error);
-    } finally {
-      setLoading(false);
+      const [classRes, selectionRes] = await Promise.all([
+        axios.get(`${API_URL}/api/classes`, { headers }),
+        axios.get(`${API_URL}/api/selections`, { headers }),
+      ]);
+      setClassData(classRes.data.data);
+      setSelectionData(selectionRes.data.data);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   useEffect(() => {
-    fetchClasses();
-    fetchSelections();
+    fetchData();
   }, []);
 
-  // Handle input change
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    if (name === 'nama_kelas' || name === 'selections_id') {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    } else {
+      setFormSelection((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  // Handle Class Submit
-  const handleClassSubmit = async (e: React.FormEvent) => {
+  const handleSubmitClass = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      let response;
       if (isEditMode && selectedClass) {
-        response = await axios.put(
-          `${API_URL}/api/classes/${selectedClass.id}`,
-          {
-            nama_kelas: formData.nama_kelas,
-            selections_id: formData.selections_id,
-          },
-          { headers }
-        );
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: response.data.message || 'Class data updated successfully.',
-          confirmButtonColor: '#3085d6',
-        });
+        await axios.put(`${API_URL}/api/classes/${selectedClass.id}`, formData, { headers });
+        Swal.fire('Berhasil', 'Data kelas diperbarui', 'success');
       } else {
-        response = await axios.post(
-          `${API_URL}/api/classes`,
-          {
-            nama_kelas: formData.nama_kelas,
-            selections_id: formData.selections_id,
-          },
-          { headers }
-        );
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: response.data.message || 'Class added successfully.',
-          confirmButtonColor: '#3085d6',
-        });
+        await axios.post(`${API_URL}/api/classes`, formData, { headers });
+        Swal.fire('Berhasil', 'Data kelas ditambahkan', 'success');
       }
-
-      handleModalClose();
-      fetchClasses();
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message || 'An error occurred while saving data.';
-      Swal.fire({
-        icon: 'error',
-        title: 'Failed',
-        text: errorMessage,
-        confirmButtonColor: '#d33',
-      });
-      console.error('Failed to save data:', error);
+      fetchData();
+      handleCloseClass();
+    } catch (err: any) {
+      Swal.fire('Gagal', err.response?.data?.message || 'Terjadi kesalahan', 'error');
     }
   };
 
-  // Handle Selection Submit
-  const handleSelectionSubmit = async (e: React.FormEvent) => {
+  const handleSubmitSelection = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      let response;
       if (isEditMode && selectedSelection) {
-        response = await axios.put(
-          `${API_URL}/api/selections/${selectedSelection.id}`,
-          { nama_rombel: formDataSelection.nama_rombel },
-          { headers }
-        );
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: response.data.message || 'Selection updated successfully.',
-          confirmButtonColor: '#3085d6',
-        });
+        await axios.put(`${API_URL}/api/selections/${selectedSelection.id}`, formSelection, { headers });
+        Swal.fire('Berhasil', 'Data rombel diperbarui', 'success');
       } else {
-        response = await axios.post(
-          `${API_URL}/api/selections`,
-          { nama_rombel: formDataSelection.nama_rombel },
-          { headers }
-        );
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: response.data.message || 'Selection added successfully.',
-          confirmButtonColor: '#3085d6',
-        });
+        await axios.post(`${API_URL}/api/selections`, formSelection, { headers });
+        Swal.fire('Berhasil', 'Data rombel ditambahkan', 'success');
       }
-
-      handleSelectionModalClose();
-      fetchSelections();
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message || 'An error occurred while saving data.';
-      Swal.fire({
-        icon: 'error',
-        title: 'Failed',
-        text: errorMessage,
-        confirmButtonColor: '#d33',
-      });
-      console.error('Failed to save data:', error);
+      fetchData();
+      handleCloseSelection();
+    } catch (err: any) {
+      Swal.fire('Gagal', err.response?.data?.message || 'Terjadi kesalahan', 'error');
     }
   };
 
-  // Handle Edit for Class
-  const handleEditClass = (classItem: Class) => {
+  const handleEditClass = (item: Class) => {
+    setSelectedClass(item);
+    console.log('====================================');
+    console.log(item);
+    console.log('====================================');
+    setFormData({ nama_kelas: item.nama_kelas, selections_id: item.selections_id });
     setIsEditMode(true);
-    setSelectedClass(classItem);
-    setFormData({
-      nama_kelas: classItem.nama_kelas,
-      selections_id: classItem.selection_id,
-    });
     setIsClassModalOpen(true);
   };
 
-  // Handle Edit for Selection
-  const handleEditSelection = (selectionItem: Selection) => {
+  const handleEditSelection = (item: Selection) => {
+    setSelectedSelection(item);
+    setFormSelection({ nama_rombel: item.nama_rombel });
     setIsEditMode(true);
-    setSelectedSelection(selectionItem);
-    setFormDataSelection({
-      nama_rombel: selectionItem.nama_rombel,
-    });
     setIsSelectionModalOpen(true);
   };
 
-  // Handle Delete for Class
   const handleDeleteClass = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this class?')) return;
-    try {
-      const response = await axios.delete(`${API_URL}/api/classes/${id}`, {
-        headers,
-      });
-      Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: response.data.message || 'Class deleted successfully.',
-        confirmButtonColor: '#3085d6',
-      });
-      fetchClasses();
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message || 'An error occurred while deleting data.';
-      Swal.fire({
-        icon: 'error',
-        title: 'Failed',
-        text: errorMessage,
-        confirmButtonColor: '#d33',
-      });
-      console.error('Failed to delete data:', error);
+    if (confirm('Yakin hapus kelas?')) {
+      await axios.delete(`${API_URL}/api/classes/${id}`, { headers });
+      fetchData();
     }
   };
 
-  // Handle Delete for Selection
   const handleDeleteSelection = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this selection?')) return;
-    try {
-      const response = await axios.delete(`${API_URL}/api/selections/${id}`, {
-        headers,
-      });
-      Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: response.data.message || 'Selection deleted successfully.',
-        confirmButtonColor: '#3085d6',
-      });
-      fetchSelections();
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message || 'An error occurred while deleting data.';
-      Swal.fire({
-        icon: 'error',
-        title: 'Failed',
-        text: errorMessage,
-        confirmButtonColor: '#d33',
-      });
-      console.error('Failed to delete data:', error);
+    if (confirm('Yakin hapus rombel?')) {
+      await axios.delete(`${API_URL}/api/selections/${id}`, { headers });
+      fetchData();
     }
   };
 
-  // Close Modals
-  const handleClassModalClose = () => {
+  const handleCloseClass = () => {
     setIsClassModalOpen(false);
     setIsEditMode(false);
+    setFormData({ nama_kelas: '', selections_id: 0 });
     setSelectedClass(null);
-    setFormData({
-      nama_kelas: '',
-      selections_id: 0,
-    });
   };
 
-  const handleSelectionModalClose = () => {
+  const handleCloseSelection = () => {
     setIsSelectionModalOpen(false);
     setIsEditMode(false);
+    setFormSelection({ nama_rombel: '' });
     setSelectedSelection(null);
-    setFormData({
-      nama_kelas: '',
-      selections_id: 0,
-    });
   };
-
-  // Filtering classes
-  const filteredClasses = classData.filter((classItem) =>
-    classItem
-  );
 
   return (
     <Layout>
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-gray-800">Class Data</h1>
+      <div className="p-4 space-y-8 bg-gray-100">
+        {/* Kelas Section */}
+        <div>
+          <div className="flex justify-between mb-2">
+            <h2 className="text-xl font-bold">Data Kelas</h2>
+            <button onClick={() => setIsClassModalOpen(true)} className="bg-blue-600 text-white px-3 py-2 rounded flex items-center gap-1">
+              <FiPlus /> Tambah Kelas
+            </button>
+          </div>
+          <table className="w-full border">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border p-2">No</th>
+                <th className="border p-2">Nama Kelas</th>
+                <th className="border p-2">Rombel</th>
+                <th className="border p-2">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="bg-gray-100">
+              {classData.map((item, i) => (
+                <tr key={item.id}>
+                  <td className="border p-2">{i + 1}</td>
+                  <td className="border p-2">{item.nama_kelas}</td>
+                  <td className="border p-2">{item.selection.nama_rombel || '-'}</td>
+                  <td className="border p-2 flex gap-2">
+                    <button onClick={() => handleEditClass(item)}><FiEdit2 /></button>
+                    <button onClick={() => handleDeleteClass(item.id)}><FiTrash2 className="text-red-500" /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        {/* Class Modal */}
+        {/* Rombel Section */}
+        <div>
+          <div className="flex justify-between mb-2">
+            <h2 className="text-xl font-bold">Data Rombel</h2>
+            <button onClick={() => setIsSelectionModalOpen(true)} className="bg-green-600 text-white px-3 py-2 rounded flex items-center gap-1">
+              <FiPlus /> Tambah Rombel
+            </button>
+          </div>
+          <table className="w-full border">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border p-2">No</th>
+                <th className="border p-2">Nama Rombel</th>
+                <th className="border p-2">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="bg-gray-100">
+              {selectionData.map((item, i) => (
+                <tr key={item.id}>
+                  <td className="border p-2">{i + 1}</td>
+                  <td className="border p-2">{item.nama_rombel}</td>
+                  <td className="border p-2 flex gap-2">
+                    <button onClick={() => handleEditSelection(item)}><FiEdit2 /></button>
+                    <button onClick={() => handleDeleteSelection(item.id)}><FiTrash2 className="text-red-500" /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Modal Kelas */}
         {isClassModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  {isEditMode ? 'Edit Class Data' : 'Add New Class'}
-                </h2>
-                <button
-                  onClick={handleClassModalClose}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FiX size={24} />
-                </button>
-              </div>
-
-              <form onSubmit={handleClassSubmit} className="space-y-4">
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded shadow-lg w-full max-w-md relative">
+              <button className="absolute top-2 right-2" onClick={handleCloseClass}><FiX /></button>
+              <h3 className="text-lg font-bold mb-4">{isEditMode ? 'Edit Kelas' : 'Tambah Kelas'}</h3>
+              <form onSubmit={handleSubmitClass} className="space-y-4">
                 <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Class Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    required
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder="Enter class name"
-                  />
+                  <label>Nama Kelas</label>
+                  <input name="nama_kelas" value={formData.nama_kelas} onChange={handleInput} required className="w-full border p-2 rounded" />
                 </div>
-
                 <div>
-                  <label
-                    htmlFor="selection_id"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Selection
-                  </label>
-                  <select
-                    id="selection_id"
-                    name="selection_id"
-                    required
-                    value={formData.selection_id}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value={0} disabled>
-                      Select a Selection
-                    </option>
-                    {selections.map((selection) => (
-                      <option key={selection.id} value={selection.id}>
-                        {selection.name}
-                      </option>
+                  <label>Pilih Rombel</label>
+                  <select name="selections_id" value={formData.selections_id} onChange={handleInput} required className="w-full border p-2 rounded">
+                    <option value="">-- Pilih --</option>
+                    {selectionData.map((rombel) => (
+                      <option key={rombel.id} value={rombel.id}>{rombel.nama_rombel}</option>
                     ))}
                   </select>
                 </div>
-
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={handleClassModalClose}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    {isEditMode ? 'Save Changes' : 'Save'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Selection Modal */}
-        {isSelectionModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  {isEditMode ? 'Edit Selection' : 'Add New Selection'}
-                </h2>
-                <button
-                  onClick={handleSelectionModalClose}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FiX size={24} />
+                <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+                  {isEditMode ? 'Update' : 'Simpan'}
                 </button>
-              </div>
-
-              <form onSubmit={handleSelectionSubmit} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Selection Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    required
-                    value={formDataSelection.nama_rombel}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder="Enter selection name"
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={handleSelectionModalClose}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    {isEditMode ? 'Save Changes' : 'Save'}
-                  </button>
-                </div>
               </form>
             </div>
           </div>
         )}
-        <div className="flex space-x-6">
-          <div className="flex-1 pl-6">
 
-            {/* Classes Table */}
-            <div className="overflow-x-auto mb-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Classes</h2>
-              <button
-                onClick={() => setIsClassModalOpen(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md flex items-center"
-              >
-                <FiPlus className="mr-2" />
-                Add New Class
-              </button>
-              <table className="min-w-full table-auto">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs sm:text-sm font-semibold text-gray-600 border-b">No</th>
-                    <th className="px-4 py-2 text-left text-xs sm:text-sm font-semibold text-gray-600 border-b">Class Name</th>
-                    <th className="px-4 py-2 text-left text-xs sm:text-sm font-semibold text-gray-600 border-b">Selection</th>
-                    <th className="px-4 py-2 text-left text-xs sm:text-sm font-semibold text-gray-600 border-b">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan="4" className="text-center py-4">Loading...</td>
-                    </tr>
-                  ) : (
-                    filteredClasses.map((classItem, index) => (
-                      <tr key={classItem.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b">{index + 1}</td>
-                        <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b">{classItem.nama_kelas}</td>
-                        <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b">
-                          {classItem.selection.nama_rombel || 'No Selection'
-                          }
-                        </td>
-                        <td className="px-4 py-2 text-xs sm:text-sm border-b">
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleEditClass(classItem)}
-                              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md"
-                            >
-                              <FiEdit2 size={14} />
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteClass(classItem.id)}
-                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
-                            >
-                              <FiTrash2 size={14} />
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+        {/* Modal Rombel */}
+        {isSelectionModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded shadow-lg w-full max-w-md relative">
+              <button className="absolute top-2 right-2" onClick={handleCloseSelection}><FiX /></button>
+              <h3 className="text-lg font-bold mb-4">{isEditMode ? 'Edit Rombel' : 'Tambah Rombel'}</h3>
+              <form onSubmit={handleSubmitSelection} className="space-y-4">
+                <div>
+                  <label>Nama Rombel</label>
+                  <input name="nama_rombel" value={formSelection.nama_rombel} onChange={handleInput} required className="w-full border p-2 rounded" />
+                </div>
+                <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">
+                  {isEditMode ? 'Update' : 'Simpan'}
+                </button>
+              </form>
             </div>
           </div>
-
-          <div className="flex-1 pl-6">
-
-            {/* Selections Table */}
-            <div className="overflow-x-auto">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Selections</h2>
-              <button
-                onClick={() => setIsSelectionModalOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
-              >
-                <FiPlus className="mr-2" />
-                Add New Selection
-              </button>
-              <table className="min-w-full table-auto">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs sm:text-sm font-semibold text-gray-600 border-b">No</th>
-                    <th className="px-4 py-2 text-left text-xs sm:text-sm font-semibold text-gray-600 border-b">Selection Name</th>
-                    <th className="px-4 py-2 text-left text-xs sm:text-sm font-semibold text-gray-600 border-b">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan="3" className="text-center py-4">Loading...</td>
-                    </tr>
-                  ) : (
-                    selectionData.map((selection, index) => (
-                      <tr key={selection.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b">{index + 1}</td>
-                        <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b">{selection.nama_rombel}</td>
-                        <td className="px-4 py-2 text-xs sm:text-sm border-b">
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleEditSelection(selection)}
-                              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md"
-                            >
-                              <FiEdit2 size={14} />
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteSelection(selection.id)}
-                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
-                            >
-                              <FiTrash2 size={14} />
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </Layout>
   );
 };
 
 export default ClassPage;
-

@@ -60,22 +60,6 @@ const LaporanAbsensi = () => {
     }
   };
 
-  // Menghitung jumlah siswa berdasarkan kelas
-  const calculateSiswaCount = () => {
-    const count: any = {};
-    kelasOptions.forEach((kelasData) => {
-      count[kelasData.id] = Math.floor(Math.random() * 10); // Anggap random siswa count, ganti sesuai data asli
-    });
-    setSiswaCount(count);
-  };
-
-  // Panggil calculateSiswaCount jika kelasOptions berubah
-  useEffect(() => {
-    if (kelasOptions.length > 0) {
-      calculateSiswaCount();
-    }
-  }, [kelasOptions]);
-
   return (
     <Layout>
       <div className="px-6 py-4">

@@ -1,8 +1,10 @@
 import React, { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { FiHome, FiUsers, FiBookOpen, FiCalendar, FiCamera, FiCode, FiClock, FiLogOut, FiUser, FiChevronDown, FiMenu, FiX, FiSettings, FiPrinter } from 'react-icons/fi';
+import { FiHome, FiCheck, FiUsers, FiBookOpen, FiCalendar, FiCamera, FiCode, FiClock, FiLogOut, FiUser, FiChevronDown, FiMenu, FiX, FiSettings, FiPrinter } from 'react-icons/fi';
 import Cookies from 'js-cookie';
+import axios from 'axios';
+import { API_URL } from '../pages/config';
 
 interface LayoutProps {
   children: ReactNode;
@@ -14,34 +16,41 @@ const Layout = ({ children }: LayoutProps) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [role, setRole] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
 
-  // Handle dark mode toggle
-  const handleToggleDarkMode = () => {
-    const currentMode = localStorage.getItem('darkMode');
-    const newMode = currentMode === 'true' ? 'false' : 'true';  // Toggle between 'true' and 'false'
-    localStorage.setItem('darkMode', newMode);
+  const fetchVerify = async (token: any) => {
 
-    // Apply dark mode to document
-    if (newMode === 'true') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    };
+    try {
+      const response = await axios.get(`${API_URL}/api/auth/verify`, { headers });
+      console.log('====================================');
+      console.log(response.data.user);
+      setRole(response.data.user.role)
+      setUsername(response.data.user.username)
+      console.log('====================================');
+    } catch (error) {
+      console.error('Error verifying token:', error);
+      handleLogout(); // bisa logout jika token tidak valid
     }
+
   };
 
   useEffect(() => {
     const token = Cookies.get('access_token');
-    if (!token) {
-      handleLogout();
-    }
+    const verifyAndSet = async () => {
+      if (!token) {
+        handleLogout();
+        return;
+      }
 
-    // Set the initial theme on page load
-    const isDarkMode = localStorage.getItem('darkMode') === 'true'; // Dark mode flag should be 'true' to activate dark mode
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');  // Ensure light mode is active if dark mode is not enabled
-    }
+      await fetchVerify(token);
+    };
+
+    verifyAndSet();
 
     // Initial time set
     setCurrentTime(formatTime(new Date()));
@@ -56,24 +65,10 @@ const Layout = ({ children }: LayoutProps) => {
       setIsSidebarOpen(false);
     };
 
-    // Listen for dark mode changes
-    const handleDarkModeChange = (e: StorageEvent) => {
-      if (e.key === 'darkMode') {
-        const isDark = e.newValue === 'true';  // Listen for changes to darkMode setting in localStorage
-        if (isDark) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleDarkModeChange);
     router.events.on('routeChangeComplete', handleRouteChange);
 
     return () => {
       clearInterval(timer);
-      window.removeEventListener('storage', handleDarkModeChange);
       router.events.off('routeChangeComplete', handleRouteChange);
     };
   }, [router]);
@@ -91,17 +86,32 @@ const Layout = ({ children }: LayoutProps) => {
     }).format(date);
   };
 
-  const menuItems = [
-    { icon: FiHome, label: 'Dashboard', path: '/' },
-    { icon: FiUsers, label: 'Data Staff', path: '/staff' },
-    { icon: FiBookOpen, label: 'Data Siswa', path: '/siswa' },
-    { icon: FiCalendar, label: 'Data Kelas', path: '/kelas' },
-    { icon: FiCode, label: 'Ambil QR Code', path: '/generate-qr' },
-    { icon: FiCamera, label: 'Scan QR Code', path: '/scan-qr' },
-    { icon: FiPrinter, label: 'Generate Laporan', path: '/laporan' },
-    { icon: FiSettings, label: 'Pengaturan', path: '/pengaturan' },
-  ];
-
+  let menuItems
+  if (role == 'admin') {
+    menuItems = [
+      { icon: FiHome, label: 'Dashboard', path: '/' },
+      { icon: FiUsers, label: 'Data Staff', path: '/staff' },
+      { icon: FiCheck, label: 'Absen Siswa', path: '/absen' },
+      { icon: FiBookOpen, label: 'Data Siswa', path: '/siswa' },
+      { icon: FiCalendar, label: 'Data Kelas', path: '/kelas' },
+      { icon: FiCode, label: 'Ambil QR Code', path: '/generate-qr' },
+      { icon: FiCamera, label: 'Scan QR Code', path: '/scan-qr' },
+      { icon: FiPrinter, label: 'Generate Laporan', path: '/laporan' },
+      { icon: FiSettings, label: 'Pengaturan', path: '/pengaturan' },
+    ];
+  } else {
+    menuItems = [
+      { icon: FiHome, label: 'Dashboard', path: '/' },
+      // { icon: FiUsers, label: 'Data Staff', path: '/staff' },
+      { icon: FiCheck, label: 'Absen Siswa', path: '/absen' },
+      // { icon: FiBookOpen, label: 'Data Siswa', path: '/siswa' },
+      // { icon: FiCalendar, label: 'Data Kelas', path: '/kelas' },
+      // { icon: FiCode, label: 'Ambil QR Code', path: '/generate-qr' },
+      { icon: FiCamera, label: 'Scan QR Code', path: '/scan-qr' },
+      { icon: FiPrinter, label: 'Generate Laporan', path: '/laporan' },
+      // { icon: FiSettings, label: 'Pengaturan', path: '/pengaturan' },
+    ];
+  }
   const handleLogout = () => {
     Cookies.remove('access_token');
     router.push('/login');
@@ -160,7 +170,7 @@ const Layout = ({ children }: LayoutProps) => {
               >
                 <FiMenu size={24} />
               </button>
-              <h2 className="text-lg lg:text-xl font-semibold text-gray-800 dark:text-white">Welcome, Admin</h2>
+              <h2 className="text-lg lg:text-xl font-semibold text-gray-800 dark:text-white">Welcome, {username}</h2>
               {/* Add suppressHydrationWarning and only show time when it's available */}
               <span suppressHydrationWarning className="hidden md:inline text-gray-600 dark:text-gray-300">
                 {currentTime}
@@ -173,7 +183,7 @@ const Layout = ({ children }: LayoutProps) => {
                   className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none"
                 >
                   <FiUser className="w-5 h-5" />
-                  <span className="hidden sm:inline">Admin</span>
+                  <span className="hidden sm:inline">{username}</span>
                   <FiChevronDown className="w-4 h-4" />
                 </button>
 
@@ -198,14 +208,14 @@ const Layout = ({ children }: LayoutProps) => {
       </div>
 
       {/* Dark Mode Toggle Button */}
-      <div className="fixed bottom-4 right-4 z-50">
+      {/* <div className="fixed bottom-4 right-4 z-50">
         <button
           onClick={handleToggleDarkMode}
           className="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-500 focus:outline-none"
         >
           Toggle Dark Mode
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };

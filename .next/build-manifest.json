@@ -22,15 +22,15 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
+    "/absen": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/absen.js"
+    ],
     "/laporan": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/laporan.js"
-    ],
-    "/siswa": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/siswa.js"
     ]
   },
   "ampFirstPages": []
