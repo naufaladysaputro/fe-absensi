@@ -1,1 +1,1 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://satisfactory-sonya-naufaladysaputro-f8d7a5ae.koyeb.app';
+export const API_URL = 'https://satisfactory-sonya-naufaladysaputro-f8d7a5ae.koyeb.app';
