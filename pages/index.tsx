@@ -4,7 +4,7 @@ import Layout from '../components/Layout';
 import StatsCards from '../components/StatsCards';
 import AttendanceSummary from '../components/AttendanceSummary';
 import { useState, useEffect } from 'react';
-import { API_URL } from './config';
+import { API_URL } from '../config';
 import axios from "axios";
 import Cookies from "js-cookie";
 

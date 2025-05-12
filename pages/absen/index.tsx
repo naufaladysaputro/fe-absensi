@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { API_URL } from '../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
+import { API_URL } from '../../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
 import Cookies from 'js-cookie';
 import Layout from '../../components/Layout';
 import Swal from "sweetalert2";

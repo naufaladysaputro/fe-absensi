@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
-import { API_URL } from './config';
+import { API_URL } from '../config';
 import Cookies from "js-cookie";
 import axios from 'axios';
 import Swal from "sweetalert2";

@@ -5,7 +5,7 @@ import { FiEdit2, FiTrash2, FiPlus, FiX } from 'react-icons/fi';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
-import { API_URL } from '../config';
+import { API_URL } from '../../config';
 
 interface Class {
   id: number;

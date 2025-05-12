@@ -5,7 +5,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { API_URL } from '../pages/config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
+import { API_URL } from '../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
 import Cookies from 'js-cookie';
 
 type StatCardProps = {

@@ -4,7 +4,7 @@ import Webcam from 'react-webcam';
 import jsQR from 'jsqr';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
-import { API_URL } from '../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
+import { API_URL } from '../../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
 import axios from 'axios';
 
 const ScanQRPage = () => {

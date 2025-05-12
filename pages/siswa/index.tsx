@@ -3,7 +3,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import Layout from '../../components/Layout';
 import { FiEdit2, FiTrash2, FiPlus, FiX } from 'react-icons/fi';
-import { API_URL } from '../config';
+import { API_URL } from '../../config';
 import { BiQrScan } from 'react-icons/bi';
 
 interface Student {

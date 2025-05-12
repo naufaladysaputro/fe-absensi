@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { API_URL } from '../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
+import { API_URL } from '../../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
 
 const PengaturanPage = () => {
   // State untuk form input

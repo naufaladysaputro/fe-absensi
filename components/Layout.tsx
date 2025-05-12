@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { FiHome, FiCheck, FiUsers, FiBookOpen, FiCalendar, FiCamera, FiCode, FiClock, FiLogOut, FiUser, FiChevronDown, FiMenu, FiX, FiSettings, FiPrinter } from 'react-icons/fi';
 import Cookies from 'js-cookie';
 import axios from 'axios';
-import { API_URL } from '../pages/config';
+import { API_URL } from '../config';
 
 interface LayoutProps {
   children: ReactNode;
