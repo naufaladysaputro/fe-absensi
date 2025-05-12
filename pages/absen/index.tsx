@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_URL } from '../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
 import Cookies from 'js-cookie';
+import Layout from '../../components/Layout';
 
 const AttendanceList = () => {
   const [loading, setLoading] = useState(false);
@@ -87,6 +88,7 @@ const AttendanceList = () => {
   };
 
   return (
+    <Layout>
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Daftar Kehadiran</h2>
 
@@ -216,6 +218,7 @@ const AttendanceList = () => {
         </tbody>
       </table>
     </div>
+    </Layout>
   );
 };
 
