@@ -93,11 +93,8 @@ const ClassPage = () => {
     }
   };
 
-  const handleEditClass = (item: Class) => {
+  const handleEditClass = (item: any) => {
     setSelectedClass(item);
-    console.log('====================================');
-    console.log(item);
-    console.log('====================================');
     setFormData({ nama_kelas: item.nama_kelas, selections_id: item.selections_id });
     setIsEditMode(true);
     setIsClassModalOpen(true);
@@ -159,7 +156,7 @@ const ClassPage = () => {
               </tr>
             </thead>
             <tbody className="bg-gray-100">
-              {classData.map((item, i) => (
+              {classData.map((item : any, i) => (
                 <tr key={item.id}>
                   <td className="border p-2">{i + 1}</td>
                   <td className="border p-2">{item.nama_kelas}</td>

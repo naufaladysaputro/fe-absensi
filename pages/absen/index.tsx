@@ -53,7 +53,7 @@ const AttendanceList = () => {
     }
   };
 
-  const handleEditClick = (attendance) => {
+  const handleEditClick = (attendance:any) => {
     setEditingId(attendance.id);
     setFormData({
       kehadiran: attendance.kehadiran || '',
@@ -61,7 +61,7 @@ const AttendanceList = () => {
     });
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e:any) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -149,12 +149,12 @@ const AttendanceList = () => {
           <tbody>
             {attendanceData.length === 0 ? (
               <tr>
-                <td colSpan="7" className="text-center py-4 text-gray-500">
+                <td colSpan={7} className="text-center py-4 text-gray-500">
                   Tidak ada data kehadiran
                 </td>
               </tr>
             ) : (
-              attendanceData.map((attendance, index) => (
+              attendanceData.map((attendance:any, index) => (
                 <tr key={attendance.id}>
                   <td className="border px-4 py-2">{index + 1}</td>
                   <td className="border px-4 py-2">{attendance.nama_siswa}</td>

@@ -223,7 +223,7 @@ const SiswaPage = () => {
                     className="w-full border px-3 py-2 rounded"
                   >
                     <option value="">Pilih Kelas</option>
-                    {classOptions.map((kelas) => (
+                    {classOptions.map((kelas : any) => (
                       <option key={kelas.id} value={kelas.id}>
                         {kelas.nama_kelas} - {kelas.selection.nama_rombel}
                       </option>
