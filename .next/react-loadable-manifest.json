@@ -1,9 +1,21 @@
 {
-  "..\\components\\AttendanceSummary.tsx -> react-apexcharts": {
-    "id": 7229,
+  "components\\AttendanceSummary.tsx -> react-apexcharts": {
+    "id": 1352,
     "files": [
-      "static/chunks/56da58dc.7b5888dfbc5bf304.js",
-      "static/chunks/229.796075e2bc4b3ba8.js"
+      "static/chunks/fa3de7d5.2726381d73910c95.js",
+      "static/chunks/352.8f0de8b187282e19.js"
+    ]
+  },
+  "node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
+    "id": 57,
+    "files": [
+      "static/chunks/57.268c8c590d7f2802.js"
+    ]
+  },
+  "node_modules\\next\\dist\\client\\index.js -> ../pages/_error": {
+    "id": 4100,
+    "files": [
+      "static/chunks/100.08ec66e0d1d88155.js"
     ]
   }
 }

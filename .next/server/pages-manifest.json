@@ -9,9 +9,9 @@
   "/pengaturan": "pages/pengaturan.js",
   "/profil": "pages/profil.js",
   "/register": "pages/register.js",
-  "/_error": "pages/_error.js",
   "/scan-qr": "pages/scan-qr.js",
   "/siswa": "pages/siswa.js",
+  "/_error": "pages/_error.js",
   "/staff": "pages/staff.js",
   "/config": "pages/config.js",
   "/_document": "pages/_document.js"
