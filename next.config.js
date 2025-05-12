@@ -1,5 +1,6 @@
 module.exports = {
+  swcMinify: true,
   experimental: {
-    workerThreads: false, // nonaktifkan thread worker paralel
-  },
+    fallbackNodePolyfills: false,
+  }
 };
