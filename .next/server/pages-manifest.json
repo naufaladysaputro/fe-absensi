@@ -1,18 +1,18 @@
 {
   "/_app": "pages/_app.js",
   "/absen": "pages/absen.js",
-  "/generate-qr": "pages/generate-qr.js",
   "/": "pages/index.js",
+  "/generate-qr": "pages/generate-qr.js",
   "/kelas": "pages/kelas.js",
   "/laporan": "pages/laporan.js",
   "/login": "pages/login.js",
   "/pengaturan": "pages/pengaturan.js",
   "/profil": "pages/profil.js",
   "/register": "pages/register.js",
-  "/scan-qr": "pages/scan-qr.js",
   "/siswa": "pages/siswa.js",
-  "/_error": "pages/_error.js",
+  "/scan-qr": "pages/scan-qr.js",
   "/staff": "pages/staff.js",
+  "/_error": "pages/_error.js",
   "/config": "pages/config.js",
   "/_document": "pages/_document.js"
 }
