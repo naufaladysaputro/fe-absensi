@@ -3,6 +3,7 @@ import axios from 'axios';
 import { API_URL } from '../config'; // Pastikan API_URL sudah didefinisikan dengan benar di config.js atau config.ts
 import Cookies from 'js-cookie';
 import Layout from '../../components/Layout';
+import Swal from "sweetalert2";
 
 const AttendanceList = () => {
   const [loading, setLoading] = useState(false);
@@ -46,9 +47,6 @@ const AttendanceList = () => {
   const fetchAttendance = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/attendance/class/${kelas}?date=${date}`, { headers });
-      console.log('====================================');
-      console.log(response.data);
-      console.log('====================================');
       setAttendanceData(response.data.data.attendance);
     } catch (error) {
       console.error('Gagal mengambil data kehadiran:', error);
@@ -72,12 +70,20 @@ const AttendanceList = () => {
     fetchAttendance()
   };
 
-  const handleSave = async (id) => {
+  const handleSave = async (id:any) => {
     try {
-      await axios.put(`${API_URL}/api/attendance/${id}`, formData, { headers });
+      await axios.put(`${API_URL}/api/attendance/update-by-date`, { ...formData, tanggal: date, students_id: id }, { headers });
       setEditingId(null);
+      Swal.fire('Berhasil', 'Data berhasil diperbarui', 'success');
+      
       fetchAttendance(); // Refresh data
-    } catch (error) {
+    } catch (error:any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Edit Gagal',
+        text: error.response.data.message,
+        confirmButtonColor: '#d33',
+      });
       console.error('Gagal menyimpan perubahan:', error);
     }
   };
@@ -89,7 +95,7 @@ const AttendanceList = () => {
 
   return (
     <Layout>
-    <div className="p-4">
+      <div className="p-4 p-6 bg-white">
       <h2 className="text-xl font-bold mb-4">Daftar Kehadiran</h2>
 
       <div className="card-body p-6 bg-white">
@@ -140,82 +146,85 @@ const AttendanceList = () => {
             <th className="border px-4 py-2">Aksi</th>
           </tr>
         </thead>
-        <tbody>
-          {attendanceData.map((attendance, index) => (
-            <tr key={attendance.id}>
-              <td className="border px-4 py-2">{index + 1}</td>
-              <td className="border px-4 py-2">{attendance.nama_siswa}</td>
-              <td className="border px-4 py-2">
-                {editingId === attendance.id ? (
-                  <select
-                    name="kehadiran"
-                    value={formData.kehadiran}
-                    onChange={handleInputChange}
-                    className="border px-2 py-1 w-full"
-                  >
-                    <option value="">Pilih</option>
-                    <option value="Hadir">Hadir</option>
-                    <option value="Izin">Izin</option>
-                    <option value="Sakit">Sakit</option>
-                    <option value="Alpha">Alpha</option>
-                  </select>
-                ) : (
-                    attendance.attendance.kehadiran
-                )}
-              </td>
-              <td className="border px-4 py-2">
-                {
-                    attendance.attendance.jam_masuk || '-'
-                }
-              </td>
+          <tbody>
+            {attendanceData.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="text-center py-4 text-gray-500">
+                  Tidak ada data kehadiran
+                </td>
+              </tr>
+            ) : (
+              attendanceData.map((attendance, index) => (
+                <tr key={attendance.id}>
+                  <td className="border px-4 py-2">{index + 1}</td>
+                  <td className="border px-4 py-2">{attendance.nama_siswa}</td>
+                  <td className="border px-4 py-2">
+                    {editingId === attendance.id ? (
+                      <select
+                        name="kehadiran"
+                        value={formData.kehadiran}
+                        onChange={handleInputChange}
+                        className="border px-2 py-1 w-full"
+                      >
+                        <option value="">Pilih</option>
+                        <option value="Hadir">Hadir</option>
+                        <option value="Izin">Izin</option>
+                        <option value="Sakit">Sakit</option>
+                        <option value="Alpha">Alpha</option>
+                      </select>
+                    ) : (
+                      attendance.attendance.kehadiran
+                    )}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {attendance.attendance.jam_masuk || '-'}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {attendance.attendance.jam_pulang || '-'}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {editingId === attendance.id ? (
+                      <input
+                        type="text"
+                        name="keterangan"
+                        value={formData.keterangan}
+                        onChange={handleInputChange}
+                        className="border px-2 py-1 w-full"
+                      />
+                    ) : (
+                      attendance.attendance.keterangan || '-'
+                    )}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {editingId === attendance.id ? (
+                      <>
+                        <button
+                          onClick={() => handleSave(attendance.id)}
+                          className="bg-green-500 text-white px-2 py-1 rounded mr-2"
+                        >
+                          Simpan
+                        </button>
+                        <button
+                          onClick={handleCancel}
+                          className="bg-gray-400 text-white px-2 py-1 rounded"
+                        >
+                          Batal
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => handleEditClick(attendance)}
+                        className="bg-blue-500 text-white px-2 py-1 rounded"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
 
-              <td className="border px-4 py-2">
-                { 
-                  attendance.attendance.jam_pulang || '-'
-                }
-              </td>
-
-              <td className="border px-4 py-2">
-                {editingId === attendance.id ? (
-                  <input
-                    type="text"
-                    name="keterangan"
-                    value={formData.keterangan}
-                    onChange={handleInputChange}
-                    className="border px-2 py-1 w-full"
-                  />
-                ) : (
-                  attendance.attendance.keterangan || '-'
-                )}
-              </td>
-              <td className="border px-4 py-2">
-                {editingId === attendance.id ? (
-                  <>
-                    <button
-                      onClick={() => handleSave(attendance.id)}
-                      className="bg-green-500 text-white px-2 py-1 rounded mr-2"
-                    >
-                      Simpan
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      className="bg-gray-400 text-white px-2 py-1 rounded"
-                    >
-                      Batal
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => handleEditClick(attendance)}
-                    className="bg-blue-500 text-white px-2 py-1 rounded"
-                  >
-                    Edit
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
       </table>
     </div>
     </Layout>
