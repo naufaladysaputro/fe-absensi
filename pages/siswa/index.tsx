@@ -6,6 +6,7 @@ import { FiEdit2, FiTrash2, FiPlus, FiX } from "react-icons/fi";
 import { API_URL } from "../../config";
 import Swal from "sweetalert2";
 import { BiQrScan } from "react-icons/bi";
+import { useMemo } from 'react';
 
 interface Student {
   id: number;
@@ -29,7 +30,9 @@ interface ClassOption {
 
 const SiswaPage = () => {
   const [siswaData, setSiswaData] = useState<Student[]>([]);
-  const [classOptions, setClassOptions] = useState<ClassOption[]>([]);
+  const [kelas, setKelas] = useState("");
+
+  const [classOptions, setClassOptions] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState("10");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,11 +55,14 @@ const SiswaPage = () => {
   useEffect(() => {
     fetchSiswa();
     fetchClasses();
-  }, []);
+  }, [kelas]);
 
   const fetchSiswa = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/students`, { headers });
+      const response = await axios.get(`${API_URL}/api/students`, {
+        headers,
+        params: kelas ? { kelasId: kelas } : {},
+      });
       if (response.data.status === "success") {
         const formattedData = response.data.data.map((student: any) => ({
           id: student.id,
@@ -180,8 +186,15 @@ const SiswaPage = () => {
   };
   console.log("siswa ddata", siswaData);
 
-  const filteredSiswa = siswaData.filter((siswa) => siswa.nama_siswa.toLowerCase().includes(searchTerm.toLowerCase()));
-
+  // const filteredSiswa = siswaData.filter((siswa) => siswa.nama_siswa.toLowerCase().includes(searchTerm.toLowerCase()));
+const filteredSiswa = useMemo(() => {
+  return siswaData.filter((siswa) => {
+    const cocokNama = siswa.nama_siswa.toLowerCase().includes(searchTerm.toLowerCase());
+    // const cocokKelas = !kelas || siswa.class?.id?.toString() === kelas;
+    return cocokNama;
+    // return cocokNama && cocokKelas;
+  });
+}, [siswaData, searchTerm, kelas]);
   return (
     <Layout>
       <div className="p-6 bg-white rounded shadow">
@@ -262,7 +275,14 @@ const SiswaPage = () => {
             <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="border px-3 py-1 rounded" />
           </div>
         </div>
-
+        <select name="kelas" value={kelas} onChange={(e) => setKelas(e.target.value)} className="border rounded-md p-2 mt-3">
+          <option value="">--Pilih kelas--</option>
+          {classOptions.map((kelasData) => (
+            <option key={kelasData.id} value={kelasData.id}>
+              {`Kelas ${kelasData.nama_kelas} ${kelasData.selection.nama_rombel}`}
+            </option>
+          ))}
+        </select>
         {/* Tabel Data */}
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm border">

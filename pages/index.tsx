@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import Layout from '../components/Layout';
-import StatsCards from '../components/StatsCards';
-import AttendanceSummary from '../components/AttendanceSummary';
-import { useState, useEffect } from 'react';
-import { API_URL } from '../config';
+import Layout from "../components/Layout";
+import StatsCards from "../components/StatsCards";
+import AttendanceSummary from "../components/AttendanceSummary";
+import { useState, useEffect } from "react";
+import { API_URL } from "../config";
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -35,23 +35,30 @@ type DashboardData = {
       jumlah: number;
     };
   };
-}
+};
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardData['data'] | null>(null);
+  const [stats, setStats] = useState<DashboardData["data"] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [kelas, setKelas] = useState("");
+  const [schedule, setSchedule] = useState("");
+  const [kelasOptions, setKelasOptions] = useState<any[]>([]); // State untuk menyimpan data kelas
+  const token = Cookies.get("access_token");
+  const headers = {
+    // 'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const token = Cookies.get('access_token');
+        const token = Cookies.get("access_token");
         const response = await axios.get(`${API_URL}/api/dashboard`, {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         // if (!response.ok) {
@@ -62,18 +69,42 @@ export default function DashboardPage() {
         if (response.data.success) {
           setStats(response.data.data);
         } else {
-          throw new Error('Failed to fetch dashboard data');
+          throw new Error("Failed to fetch dashboard data");
         }
       } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred while fetching data');
+        console.error("Error fetching dashboard data:", err);
+        setError(err instanceof Error ? err.message : "An error occurred while fetching data");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, []);
+
+    const fetchKelas = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/classes`, { headers });
+        if (response.data.status === "success") {
+          setKelasOptions(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching kelas data:", error);
+      }
+    };
+    fetchKelas();
+    handleScheduleClass(kelas);
+  }, [kelas]);
+
+  const handleScheduleClass = async (id: any) => {
+    try {
+      const response = await axios.get(`${API_URL}/api/schedules/${id}`, { headers });
+      const scheduleData = response.data.data;
+      console.log(scheduleData.schedule_path);
+      setSchedule(scheduleData.schedule_path);
+    } catch (err: any) {
+      console.error("Error fetching schedule data:", err);
+    }
+  };
 
   const LoadingState = () => (
     <div className="flex items-center justify-center min-h-[400px]">
@@ -94,10 +125,7 @@ export default function DashboardPage() {
         </div>
         <h3 className="text-lg font-medium text-gray-900 mb-2">Gagal memuat data</h3>
         <p className="text-sm text-gray-500">{message}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
-        >
+        <button onClick={() => window.location.reload()} className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
           Coba lagi
         </button>
       </div>
@@ -109,9 +137,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Ringkasan data absensi sekolah
-          </p>
+          <p className="mt-2 text-sm text-gray-700">Ringkasan data absensi sekolah</p>
         </div>
 
         {isLoading ? (
@@ -124,6 +150,22 @@ export default function DashboardPage() {
             <AttendanceSummary stats={stats} />
           </>
         ) : null}
+      </div>
+
+      <div className="rounded-lg bg-white p-6 shadow mt-8">
+        <h2 className="text-base font-semibold text-gray-900">Jadwal Kelas</h2>
+        <p className="mt-1 text-sm text-gray-500">Pilih kelas untuk melihat jadwal</p>
+        <select name="kelas" value={kelas} onChange={(e) => setKelas(e.target.value)} className="border rounded-md p-2 mt-3">
+          <option value="">--Pilih kelas--</option>
+          {kelasOptions.map((kelasData) => (
+            <option key={kelasData.id} value={kelasData.id}>
+              {`Kelas ${kelasData.nama_kelas} ${kelasData.selection.nama_rombel}`}
+            </option>
+          ))}
+        </select>
+        <div className="mt-4">
+          <img src={`${API_URL}/schedules/${schedule}`} alt="" className="w-full" />
+        </div>
       </div>
     </Layout>
   );

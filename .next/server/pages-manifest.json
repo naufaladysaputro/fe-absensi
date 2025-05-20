@@ -2,8 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
+  "/pengaturan": "pages/pengaturan.js",
   "/": "pages/index.js",
-  "/staff": "pages/staff.js",
-  "/siswa": "pages/siswa.js",
-  "/absen": "pages/absen.js"
+  "/kelas": "pages/kelas.js"
 }

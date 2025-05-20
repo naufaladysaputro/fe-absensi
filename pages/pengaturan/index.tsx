@@ -8,6 +8,7 @@ const PengaturanPage = () => {
   // State untuk form input
   const [schoolName, setSchoolName] = useState('');
   const [schoolYear, setSchoolYear] = useState('');
+  const [jamMasuk, setJamMasuk] = useState('');
   const [logo, setLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,6 +26,7 @@ const PengaturanPage = () => {
         const settings = response.data.data;
         setSchoolName(settings.nama_sekolah);
         setSchoolYear(settings.tahun_ajaran);
+        setJamMasuk(settings.jam_masuk);
         setLogoPreview(`${API_URL}${settings.logo_path}`); // Misal logo_url di response
       } catch (error) {
         console.error('Error fetching settings:', error);
@@ -43,6 +45,7 @@ const PengaturanPage = () => {
     const formData = new FormData();
     formData.append('school_name', schoolName);
     formData.append('school_year', schoolYear);
+    formData.append('jam_masuk', jamMasuk);
 
     try {
       const response = await axios.put(`${API_URL}/api/settings/1`, formData, { headers });
@@ -136,6 +139,18 @@ const PengaturanPage = () => {
                 className="w-full border rounded-md pl-3 pr-10 py-2"
                 value={schoolYear}
                 onChange={(e) => setSchoolYear(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label htmlFor="jam_masuk" className="block text-sm font-medium text-gray-700 mb-2">Jam Masuk</label>
+              <input
+                type="time"
+                id="jam_masuk"
+                className="w-full border rounded-md pl-3 pr-10 py-2"
+                value={jamMasuk}
+                onChange={(e) => setJamMasuk(e.target.value)}
                 required
               />
             </div>
