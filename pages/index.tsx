@@ -44,6 +44,8 @@ export default function DashboardPage() {
   const [kelas, setKelas] = useState("");
   const [schedule, setSchedule] = useState("");
   const [kelasOptions, setKelasOptions] = useState<any[]>([]); // State untuk menyimpan data kelas
+  console.log("Kelas Options", kelasOptions);
+  console.log("Kelas", kelasOptions[0]);
   const token = Cookies.get("access_token");
   const headers = {
     // 'Content-Type': 'application/json',
@@ -157,15 +159,22 @@ export default function DashboardPage() {
         <p className="mt-1 text-sm text-gray-500">Pilih kelas untuk melihat jadwal</p>
         <select name="kelas" value={kelas} onChange={(e) => setKelas(e.target.value)} className="border rounded-md p-2 mt-3">
           <option value="">--Pilih kelas--</option>
-          {kelasOptions.map((kelasData) => (
-            <option key={kelasData.id} value={kelasData.id}>
-              {`Kelas ${kelasData.nama_kelas} ${kelasData.selection.nama_rombel}`}
-            </option>
-          ))}
+          {kelasOptions.map((kelasData, index) => {
+            const scheduleId = kelasData.schedule?.[0]?.id || "";
+            return (
+              <option key={index} value={scheduleId}>
+                {`Kelas ${kelasData.nama_kelas} ${kelasData.selection.nama_rombel}`}
+              </option>
+            );
+          })}
         </select>
-        <div className="mt-4">
-          <img src={`${API_URL}/schedules/${schedule}`} alt="" className="w-full" />
-        </div>
+        {schedule ? (
+          <div className="mt-4">
+            <img src={`${API_URL}/schedules/${schedule}`} alt="Jadwal Kelas" className="w-full" />
+          </div>
+        ) : (
+          <div className="mt-4 text-sm text-gray-500">Tidak ada jadwal tersedia.</div>
+        )}
       </div>
     </Layout>
   );
