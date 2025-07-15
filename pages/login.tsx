@@ -139,11 +139,11 @@ const LoginPage = () => {
                 </label>
               </div>
 
-              <div className="text-sm">
+              {/* <div className="text-sm">
                 <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
                   Lupa password?
                 </a>
-              </div>
+              </div> */}
             </div>
 
             <div>
