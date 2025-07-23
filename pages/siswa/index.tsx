@@ -223,7 +223,7 @@ const filteredSiswa = useMemo(() => {
                 </div>
                 <div>
                   <label>NIS</label>
-                  <input type="number" name="nis" value={formData.nis} onChange={handleInputChange} required className="w-full border px-3 py-2 rounded" />
+                  <input type="text" name="nis" value={formData.nis} onChange={handleInputChange} required inputMode="numeric" pattern="\d*" className="w-full border px-3 py-2 rounded" />
                 </div>
                 <div>
                   <label>Kelas</label>
