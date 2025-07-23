@@ -59,6 +59,13 @@ const GeneratePage = () => {
   const handleDownload = async () => {
     try {
       setLoading(true);
+
+      // Cari data kelas berdasarkan ID
+      const selectedKelas = kelasOptions.find((k) => k.id.toString() === kelas);
+      const namaKelas = selectedKelas?.nama_kelas || `kelas_${kelas}`;
+      const selectionsId = selectedKelas?.selection.nama_rombel || '0';
+      console.log( kelasOptions)
+console.log('Selected Kelas:', selectedKelas, namaKelas, selectionsId);
       // Meminta laporan absensi dari API
       const response = await axios.get(
         `${API_URL}/api/qrcodes/class/${kelas}`,
@@ -67,7 +74,7 @@ const GeneratePage = () => {
 
       if (response.data.status === "success") {
         const zip = new JSZip();
-        const folder = zip.folder(`QR_Kelas_${kelas}`);
+        const folder = zip.folder(`QR_Kelas_${namaKelas}_${selectionsId}`);
 
         const qrList = response.data.data;
         console.log('====================================');
@@ -91,7 +98,7 @@ const GeneratePage = () => {
         }
 
         const zipBlob = await zip.generateAsync({ type: 'blob' });
-        saveAs(zipBlob, `QR_Kelas_${kelas}.zip`);
+        saveAs(zipBlob, `QR_Kelas_${namaKelas}_${selectionsId}.zip`);
       } else {
         console.error('Laporan gagal dihasilkan');
       }
