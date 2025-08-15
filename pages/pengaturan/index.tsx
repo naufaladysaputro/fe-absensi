@@ -43,8 +43,8 @@ const PengaturanPage = () => {
     setLoading(true);
 
     const formData = new FormData();
-    formData.append('school_name', schoolName);
-    formData.append('school_year', schoolYear);
+    formData.append('nama_sekolah', schoolName);
+    formData.append('tahun_ajaran', schoolYear);
     formData.append('jam_masuk', jamMasuk);
 
     try {
