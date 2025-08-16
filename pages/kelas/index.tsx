@@ -238,7 +238,7 @@ if (kelas && kelas.selection) {
       formDataSchedule.append("classes_id", formSchedule.classes_id);
       formDataSchedule.append("schedule", selectedFile);
 
-      await axios.post(`${API_URL}/api/schedules`, formDataSchedule, {
+      await axios.post(`${API_URL}/api/schedules/upsert`, formDataSchedule, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
